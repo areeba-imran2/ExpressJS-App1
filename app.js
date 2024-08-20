@@ -1,29 +1,32 @@
 import express from 'express';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import createError from 'http-errors';
 import cookieParser from 'cookie-parser';
-import logger from 'morgan';
+import logger from './src/middleware/logger.js'; // Import custom logger middleware
 
-// Import routers
-import indexRouter from './routes/index.js';
-import usersRouter from './routes/users.js';
+import indexRouter from './src/routes/index.js';
+import usersRouter from './src/routes/users.js';
 
-// Create Express app
+// Get the directory name from the URL
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
 const port = process.env.PORT || 3000;
 
 // Set up view engine
-app.set('views', path.join(path.dirname(''), 'views'));
-app.set('view engine', 'jade');
+app.set('views', path.join(__dirname, 'src', 'views'));
+app.set('view engine', 'pug');
 
-// Middleware
-app.use(logger('dev'));
+// Use middleware
+app.use(logger); // Use custom logger middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(path.dirname(''), 'public')));
+app.use(express.static(path.join(__dirname, 'public'))); // Serve static files from the public directory
 
-// Use routers
+// Set up routes
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
@@ -36,66 +39,13 @@ app.use((req, res, next) => {
 app.use((err, req, res, next) => {
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
-
   res.status(err.status || 500);
   res.render('error');
 });
 
-// Start the server and log a message
+// Start the server
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
 
 export default app;
-
-
-
-
-
-// import express from 'express';
-// import path from 'path';
-// import createError from 'http-errors';
-// import cookieParser from 'cookie-parser';
-// import logger from 'morgan';
-
-// import indexRouter from './routes/index.js';
-// import usersRouter from './routes/users.js';
-
-// const app = express();
-
-// // view engine setup
-// app.set('views', path.join(path.dirname(''), 'views'));
-// app.set('view engine', 'jade');
-
-// app.use(logger('dev'));
-// // Add Middleware: Use middleware functions to handle requests.
-// app.use(express.json()); //for parsing JSON bodies
-// app.use(express.urlencoded({ extended: false }));
-// app.use(cookieParser());
-// app.use(express.static(path.join(path.dirname(''), 'public')));
-
-// app.use('/', indexRouter);
-// app.use('/users', usersRouter);
-
-// // catch 404 and forward to error handler
-// app.use(function(req, res, next) {
-//   next(createError(404));
-// });
-
-// // error handler
-// app.use(function(err, req, res, next) {
-//   res.locals.message = err.message;
-//   res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-//   res.status(err.status || 500);
-//   res.render('error');
-// });
-
-// const port = process.env.PORT || 3000;
-
-// // Start the server and log a message
-// app.listen(port, () => {
-//   console.log(`Server is running on http://localhost:${port}`);
-// });
-
-// export default app;
